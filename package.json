@@ -1,0 +1,34 @@
+{
+  "name": "vaakya",
+  "version": "2.0.0",
+  "description": "Vaakya Voice Agent API - Powered by Sahamati Labs",
+  "main": "server.js",
+  "scripts": {
+    "start": "bun run server.js",
+    "dev": "bun --watch server.js",
+    "test": "bun test"
+  },
+  "keywords": [
+    "bun",
+    "gemini",
+    "websocket",
+    "voice-chat",
+    "multilingual"
+  ],
+  "author": "Suyesh Shankar",
+  "license": "MIT",
+  "dependencies": {
+    "@discordjs/opus": "^0.10.0",
+    "@google-cloud/speech": "^6.0.0",
+    "@google-cloud/text-to-speech": "^5.0.0",
+    "@google-cloud/vertexai": "^1.1.0",
+    "dotenv": "^16.0.0",
+    "firebase-admin": "^13.6.0",
+    "google-auth-library": "^9.0.0",
+    "prism-media": "^1.3.5",
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  }
+}

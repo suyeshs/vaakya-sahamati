@@ -1,0 +1,58 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud. It follows the same syntax as .gitignore
+
+.gcloudignore
+.git
+.gitignore
+
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Local development
+.env
+.env.local
+.env.*.local
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+coverage/
+.nyc_output/
+test/
+tests/
+*.test.js
+*.spec.js
+__tests__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation
+README.md
+CONTRIBUTING.md
+LICENSE
+docs/
+*.md
+
+# Build artifacts
+dist/
+build/
+.cache/
+tmp/
+temp/
+
+# Audio polyfills (optional - comment out if you want to include)
+# audio-polyfills/
+
+# Scripts not needed in production
+scripts/generate-polyfill-audio.js

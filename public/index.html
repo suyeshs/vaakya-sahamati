@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 Vaakya - AI Voice Chat</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="ai-avatar">🤖</div>
+                <div class="header-info">
+                    <h1>Vaakya AI</h1>
+                    <p>Your multilingual voice assistant</p>
+                </div>
+                <div class="connection-status">
+                    <div id="connection-dot" class="status-dot disconnected"></div>
+                    <span id="connection-text">Connecting...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+            <div class="message ai-message">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-text">
+                        Hello! I'm Vaakya, your AI voice assistant. I can speak in multiple languages and have natural conversations with you. 
+                        <br><br>
+                        Just click the microphone button and start talking, or type a message below. I'll respond in the same language you use!
+                    </div>
+                    <div class="message-time" id="welcome-time"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+            <div class="input-wrapper">
+                <button id="voice-btn" class="voice-btn" disabled>
+                    <span class="voice-icon">🎤</span>
+                </button>
+                <div class="input-group">
+                    <input type="text" id="text-input" placeholder="Type a message or click the microphone to speak..." disabled>
+                    <button id="send-btn" class="send-btn" disabled>
+                        <span>Send</span>
+                    </button>
+                </div>
+            </div>
+            <div class="recording-indicator" id="recording-indicator">
+                <div class="pulse"></div>
+                <span>Listening...</span>
+            </div>
+        </div>
+
+        <!-- Settings Panel (Collapsible) -->
+        <div class="settings-panel" id="settings-panel">
+            <div class="settings-header">
+                <h3>⚙️ Settings</h3>
+                <button id="settings-toggle" class="settings-toggle">−</button>
+            </div>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <label for="language-select">Language:</label>
+                    <select id="language-select" class="form-select">
+                        <option value="auto">Auto-detect (Recommended)</option>
+                        <option value="en">English</option>
+                        <option value="hi">Hindi</option>
+                        <option value="ta">Tamil</option>
+                        <option value="te">Telugu</option>
+                        <option value="bn">Bengali</option>
+                        <option value="mr">Marathi</option>
+                        <option value="gu">Gujarati</option>
+                        <option value="kn">Kannada</option>
+                        <option value="ml">Malayalam</option>
+                        <option value="pa">Punjabi</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="vad-threshold">VAD Sensitivity:</label>
+                    <input type="range" id="vad-threshold" min="0.1" max="0.9" step="0.1" value="0.5">
+                    <span id="vad-threshold-value">0.5</span>
+                </div>
+                
+                <div class="setting-item">
+                    <label for="auto-record">Auto Start Recording:</label>
+                    <input type="checkbox" id="auto-record" checked>
+                </div>
+                
+                <div class="setting-item">
+                    <label for="auto-stop">Auto Stop Recording:</label>
+                    <input type="checkbox" id="auto-stop" checked>
+                </div>
+                
+                <div class="setting-item">
+                    <label for="silence-timeout">Silence Timeout (ms):</label>
+                    <input type="number" id="silence-timeout" min="500" max="5000" step="100" value="2000">
+                </div>
+                
+                <div class="setting-item">
+                    <button id="clear-chat-btn" class="btn btn-secondary">Clear Chat</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Overlay (shown when not connected) -->
+        <div class="welcome-overlay" id="welcome-overlay">
+            <div class="welcome-content">
+                <div class="welcome-icon">🎤</div>
+                <h2>Welcome to Vaakya</h2>
+                <p>Your AI voice assistant is ready to chat!</p>
+                <button id="start-chat-btn" class="btn btn-primary">Start Chatting</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio element for playing responses -->
+    <audio id="audio-player" style="display: none;"></audio>
+
+        <!-- Scripts -->
+        <script src="/js/websocket-client.js?v=14"></script>
+        <script src="/js/voice-client.js?v=14"></script>
+        <script src="/js/vad-service.js?v=14"></script>
+        <script src="/js/enhanced-voice-client.js?v=14"></script>
+        <script src="/js/state-machine.js?v=14"></script>
+        <script src="/js/vad-state-machine.js?v=14"></script>
+        <script src="/js/voice-assistant.js?v=14"></script>
+        <script src="/js/optimized-voice-assistant.js?v=14"></script>
+        <script src="/js/app.js?v=14"></script>
+</body>
+</html>
