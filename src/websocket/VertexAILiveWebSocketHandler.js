@@ -171,6 +171,26 @@ class VertexAILiveWebSocketHandler {
         }
       });
 
+      // Set up text callback to forward to client
+      this.vertexAILiveService.setTextCallback(sessionId, (textChunk) => {
+        // Send text response back to client as JSON
+        if (ws.readyState === 1) {  // 1 = OPEN
+          this.sendMessage(ws, {
+            type: 'text_chunk',
+            text: textChunk,
+            language: session.language,
+            sessionId,
+            timestamp: Date.now()
+          });
+
+          logger.info('[VertexAILiveWS] Sent text to client', {
+            sessionId,
+            textLength: textChunk.length,
+            textPreview: textChunk.substring(0, 50)
+          });
+        }
+      });
+
       session.isActive = true;
 
       this.sendMessage(ws, {

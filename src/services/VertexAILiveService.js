@@ -571,6 +571,11 @@ class VertexAILiveService {
               sessionId,
               text: part.text.substring(0, 100)
             });
+
+            // Send text to client for display
+            if (session.onTextChunk) {
+              session.onTextChunk(part.text);
+            }
           }
 
           // Function call in serverContent (should not happen with AUDIO modality, but keep for safety)
@@ -1368,6 +1373,16 @@ class VertexAILiveService {
     const session = this.activeSessions.get(sessionId);
     if (session) {
       session.onAudioChunk = callback;
+    }
+  }
+
+  /**
+   * Set text chunk callback
+   */
+  setTextCallback(sessionId, callback) {
+    const session = this.activeSessions.get(sessionId);
+    if (session) {
+      session.onTextChunk = callback;
     }
   }
 

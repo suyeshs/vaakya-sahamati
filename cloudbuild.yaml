@@ -4,41 +4,53 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/samvad-backend-bun:$BUILD_ID'
+      - 'gcr.io/$PROJECT_ID/vaakya-sahamati-api:$BUILD_ID'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/samvad-backend-bun:latest'
+      - 'gcr.io/$PROJECT_ID/vaakya-sahamati-api:latest'
       - '.'
 
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/samvad-backend-bun:$BUILD_ID'
+      - 'gcr.io/$PROJECT_ID/vaakya-sahamati-api:$BUILD_ID'
 
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/samvad-backend-bun:latest'
+      - 'gcr.io/$PROJECT_ID/vaakya-sahamati-api:latest'
 
-  # Deploy to Cloud Run (existing service: samvad-api-bun)
-  # Using --quiet to skip confirmation and keeping existing configuration
+  # Deploy to Cloud Run (new service: vaakya-sahamati-api)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
-      - 'samvad-api-bun'
+      - 'vaakya-sahamati-api'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/samvad-backend-bun:$BUILD_ID'
+      - 'gcr.io/$PROJECT_ID/vaakya-sahamati-api:$BUILD_ID'
       - '--region'
       - 'us-central1'
       - '--platform'
       - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--timeout'
+      - '3600'
+      - '--max-instances'
+      - '10'
+      - '--min-instances'
+      - '0'
+      - '--port'
+      - '8080'
       - '--quiet'
 
 images:
-  - 'gcr.io/$PROJECT_ID/samvad-backend-bun:$BUILD_ID'
-  - 'gcr.io/$PROJECT_ID/samvad-backend-bun:latest'
+  - 'gcr.io/$PROJECT_ID/vaakya-sahamati-api:$BUILD_ID'
+  - 'gcr.io/$PROJECT_ID/vaakya-sahamati-api:latest'
 
 timeout: '1200s'
 
