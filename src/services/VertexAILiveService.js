@@ -134,20 +134,18 @@ class VertexAILiveService {
       // Get access token for WebSocket auth
       const accessToken = await this.getAccessToken();
 
-      // Create WebSocket connection
-      const wsUrl = this.getWebSocketUrl();
+      // Create WebSocket connection with auth token in URL
+      // Note: ws library doesn't reliably send Authorization headers, so we use query param
+      const baseWsUrl = this.getWebSocketUrl();
+      const wsUrl = `${baseWsUrl}?access_token=${accessToken}`;
+
       logger.info('[VertexAILive] Connecting to Vertex AI WebSocket', {
         sessionId,
-        url: wsUrl,
+        url: baseWsUrl, // Don't log the token
         hasToken: !!accessToken
       });
 
-      const ws = new WebSocket(wsUrl, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const ws = new WebSocket(wsUrl);
 
       // Load previous conversation history if userId provided
       let previousContext = '';
