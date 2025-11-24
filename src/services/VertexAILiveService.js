@@ -252,7 +252,7 @@ class VertexAILiveService {
       // Store session
       this.activeSessions.set(sessionId, session);
 
-      // Wait for connection to open
+      // Wait for connection to open - using browser/Bun standard API
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           logger.error('[VertexAILive] ❌ WebSocket connection timeout after 10s', {
@@ -262,21 +262,21 @@ class VertexAILiveService {
           reject(new Error('WebSocket connection timeout after 10 seconds'));
         }, 10000);
 
-        ws.once('open', () => {
+        // Use addEventListener with once option for one-time events
+        ws.addEventListener('open', () => {
           clearTimeout(timeout);
           logger.info('[VertexAILive] ✅ WebSocket connected successfully', { sessionId });
           resolve();
-        });
+        }, { once: true });
 
-        ws.once('error', (error) => {
+        ws.addEventListener('error', (error) => {
           clearTimeout(timeout);
           logger.error('[VertexAILive] ❌ WebSocket connection error', {
             sessionId,
-            error: error.message,
-            code: error.code
+            error: error.message || error
           });
           reject(error);
-        });
+        }, { once: true });
       });
 
       // Send setup message
@@ -431,13 +431,15 @@ class VertexAILiveService {
 
   /**
    * Setup WebSocket event handlers
+   * Using Bun's native WebSocket (browser-standard API)
    */
   setupWebSocketHandlers(session) {
     const { ws, id: sessionId } = session;
 
-    ws.on('message', async (data) => {
+    // Message handler - browser/Bun standard API
+    ws.onmessage = async (event) => {
       try {
-        const message = JSON.parse(data.toString());
+        const message = JSON.parse(event.data);
 
         // Log all messages for debugging
         logger.info('[VertexAILive] Raw message received:', {
@@ -453,24 +455,26 @@ class VertexAILiveService {
       } catch (error) {
         logger.error('[VertexAILive] Message handling error:', error);
       }
-    });
+    };
 
-    ws.on('close', (code, reason) => {
+    // Close handler - browser/Bun standard API
+    ws.onclose = (event) => {
       logger.info('[VertexAILive] WebSocket closed', {
         sessionId,
-        code,
-        reason: reason.toString()
+        code: event.code,
+        reason: event.reason
       });
       session.isActive = false;
       this.activeSessions.delete(sessionId);
-    });
+    };
 
-    ws.on('error', (error) => {
+    // Error handler - browser/Bun standard API
+    ws.onerror = (error) => {
       logger.error('[VertexAILive] WebSocket error:', {
         sessionId,
-        error: error.message
+        error: error.message || error
       });
-    });
+    };
   }
 
   /**
