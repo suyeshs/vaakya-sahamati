@@ -30,7 +30,7 @@ const logger = {
       level,
       message,
       timestamp,
-      service: 'samvad-gcp-backend',
+      service: 'vaakya-sahamati-api',
       ...meta
     };
     try {
@@ -41,7 +41,7 @@ const logger = {
         level,
         message,
         timestamp,
-        service: 'samvad-gcp-backend',
+        service: 'vaakya-sahamati-api',
         error: 'Failed to serialize log entry'
       }));
     }

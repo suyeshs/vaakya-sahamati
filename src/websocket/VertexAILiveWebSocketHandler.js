@@ -77,7 +77,16 @@ class VertexAILiveWebSocketHandler {
     try {
       // Parse message
       let message;
-      if (Buffer.isBuffer(data) || data instanceof ArrayBuffer) {
+      const isBinary = Buffer.isBuffer(data) || data instanceof ArrayBuffer;
+
+      logger.info('[VertexAILiveWS] Received data', {
+        sessionId,
+        isBinary,
+        dataType: data.constructor.name,
+        size: data.length || data.byteLength || 0
+      });
+
+      if (isBinary) {
         // Binary audio data (PCM) - send directly to Vertex AI
         await this.handleAudioChunk(ws, sessionId, data);
         return;
