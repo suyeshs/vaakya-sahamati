@@ -27,6 +27,7 @@ export default function Home() {
   const [apiStatus, setApiStatus] = useState<'online' | 'offline'>('offline');
   const [audioLevels, setAudioLevels] = useState<number[]>(new Array(32).fill(0));
   const [conversationTime, setConversationTime] = useState(0); // Time in seconds
+  const [transcriptText, setTranscriptText] = useState(''); // AI response text
 
   const vertexAILiveServiceRef = useRef<VertexAILiveService | null>(null);
   const recordingContextRef = useRef<AudioContext | null>(null);
@@ -143,6 +144,11 @@ export default function Home() {
         if (message.type === 'session_ready') {
           setSessionStatus('listening');
         }
+        // Handle text chunks from AI response
+        if (message.type === 'text_chunk') {
+          console.log('[VertexAILive] Text received:', message.text);
+          setTranscriptText(prev => prev + message.text);
+        }
       });
 
       // Get persistent user ID for context preservation across sessions
@@ -195,6 +201,7 @@ export default function Home() {
         lastSpeechStartRef.current = performance.now();
         setSessionStatus('listening');
         stopIdleAnimation();
+        setTranscriptText(''); // Clear previous response
         console.log(`[Timing] 🎤 Speech detected (RMS: ${rms.toFixed(4)})`);
       } else if (type === 'speech-end') {
         lastSpeechEndRef.current = performance.now();
@@ -411,6 +418,7 @@ export default function Home() {
     setIsSessionActive(false);
     setSessionStatus('idle');
     setAudioLevels(new Array(32).fill(0));
+    setTranscriptText(''); // Clear transcript
   };
 
   return (
@@ -478,12 +486,33 @@ export default function Home() {
             </div>
           ) : (
             /* Active Session */
-            <div className="space-y-6">
-              {/* Audio Visualizer */}
-              <AudioVisualizer
-                audioLevels={audioLevels}
-                sessionStatus={sessionStatus}
-              />
+            <div className="space-y-6 h-full flex flex-col">
+              {/* Transcript Area - Takes most of the space */}
+              <div className="flex-1 overflow-y-auto bg-white/90 border border-[#dee2e6] rounded-xl p-6 shadow-sm min-h-[300px] max-h-[500px]">
+                {transcriptText ? (
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-[#212529] text-lg leading-relaxed whitespace-pre-wrap">
+                      {transcriptText}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-[#6c757d]">
+                    <p className="text-sm">
+                      {sessionStatus === 'listening' && '🎤 Listening...'}
+                      {sessionStatus === 'thinking' && '💭 Thinking...'}
+                      {sessionStatus === 'speaking' && '🔊 Speaking...'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Audio Visualizer - Smaller */}
+              <div className="h-24">
+                <AudioVisualizer
+                  audioLevels={audioLevels}
+                  sessionStatus={sessionStatus}
+                />
+              </div>
 
               {/* Controls with Timer */}
               <div className="flex gap-4 justify-center">
