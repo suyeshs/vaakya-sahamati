@@ -5,7 +5,7 @@
  */
 
 const { GoogleAuth } = require('google-auth-library');
-// Using Bun's native WebSocket (globally available)
+const WebSocket = require('ws'); // Use ws library for backend-to-Vertex AI (supports headers)
 const { logger } = require('../utils/logger');
 const SharedFunctionSchema = require('./SharedFunctionSchema');
 const config = require('../config');
@@ -134,19 +134,21 @@ class VertexAILiveService {
       // Get access token for WebSocket auth
       const accessToken = await this.getAccessToken();
 
-      // Create WebSocket connection with access token as query parameter
-      // Bun's native WebSocket doesn't support custom headers (browser API standard)
-      // So we pass the token as a query parameter instead
-      const baseWsUrl = this.getWebSocketUrl();
-      const wsUrl = `${baseWsUrl}?access_token=${accessToken}`;
+      // Create WebSocket connection with Authorization header
+      // Using ws library which supports custom headers (required by Vertex AI)
+      const wsUrl = this.getWebSocketUrl();
 
       logger.info('[VertexAILive] Connecting to Vertex AI WebSocket', {
         sessionId,
-        url: baseWsUrl, // Don't log the token
+        url: wsUrl,
         hasToken: !!accessToken
       });
 
-      const ws = new WebSocket(wsUrl);
+      const ws = new WebSocket(wsUrl, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
 
       // Load previous conversation history if userId provided
       let previousContext = '';
@@ -429,15 +431,15 @@ class VertexAILiveService {
 
   /**
    * Setup WebSocket event handlers
-   * Using Bun's native WebSocket (browser-standard API)
+   * Using ws library for backend-to-Vertex AI connection (supports custom headers)
    */
   setupWebSocketHandlers(session) {
     const { ws, id: sessionId } = session;
 
-    // Message handler - browser/Bun standard API
-    ws.onmessage = async (event) => {
+    // Message handler - ws library API
+    ws.on('message', async (data) => {
       try {
-        const message = JSON.parse(event.data);
+        const message = JSON.parse(data.toString());
 
         // Log all messages for debugging
         logger.info('[VertexAILive] Raw message received:', {
@@ -453,26 +455,26 @@ class VertexAILiveService {
       } catch (error) {
         logger.error('[VertexAILive] Message handling error:', error);
       }
-    };
+    });
 
-    // Close handler - browser/Bun standard API
-    ws.onclose = (event) => {
+    // Close handler - ws library API
+    ws.on('close', (code, reason) => {
       logger.info('[VertexAILive] WebSocket closed', {
         sessionId,
-        code: event.code,
-        reason: event.reason
+        code,
+        reason: reason.toString()
       });
       session.isActive = false;
       this.activeSessions.delete(sessionId);
-    };
+    });
 
-    // Error handler - browser/Bun standard API
-    ws.onerror = (error) => {
+    // Error handler - ws library API
+    ws.on('error', (error) => {
       logger.error('[VertexAILive] WebSocket error:', {
         sessionId,
         error: error.message || error
       });
-    };
+    });
   }
 
   /**
