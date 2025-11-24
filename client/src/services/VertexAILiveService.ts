@@ -13,11 +13,21 @@ export class VertexAILiveService {
   private wsUrl: string;
 
   constructor(wsUrl?: string) {
-    // Auto-detect WebSocket URL based on current host
+    // Always use production URL for dev and production
     if (!wsUrl) {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      this.wsUrl = `${protocol}//${host}/api/vertex-ai-live`;
+      // Check if we're on the production domain
+      const isProduction = window.location.host.includes('run.app') ||
+                          window.location.protocol === 'https:';
+
+      if (isProduction) {
+        // Use current host if already on production
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        this.wsUrl = `${protocol}//${host}/api/vertex-ai-live`;
+      } else {
+        // For local dev, use production URL
+        this.wsUrl = 'wss://vaakya-sahamati-api-334610188311.us-central1.run.app/api/vertex-ai-live';
+      }
     } else {
       this.wsUrl = wsUrl;
     }
