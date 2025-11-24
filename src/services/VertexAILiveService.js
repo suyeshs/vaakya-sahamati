@@ -134,21 +134,19 @@ class VertexAILiveService {
       // Get access token for WebSocket auth
       const accessToken = await this.getAccessToken();
 
-      // Create WebSocket connection with Authorization header
-      // Bun's native WebSocket properly supports headers
-      const wsUrl = this.getWebSocketUrl();
+      // Create WebSocket connection with access token as query parameter
+      // Bun's native WebSocket doesn't support custom headers (browser API standard)
+      // So we pass the token as a query parameter instead
+      const baseWsUrl = this.getWebSocketUrl();
+      const wsUrl = `${baseWsUrl}?access_token=${accessToken}`;
 
       logger.info('[VertexAILive] Connecting to Vertex AI WebSocket', {
         sessionId,
-        url: wsUrl,
+        url: baseWsUrl, // Don't log the token
         hasToken: !!accessToken
       });
 
-      const ws = new WebSocket(wsUrl, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
+      const ws = new WebSocket(wsUrl);
 
       // Load previous conversation history if userId provided
       let previousContext = '';
