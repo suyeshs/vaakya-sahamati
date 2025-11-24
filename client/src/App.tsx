@@ -1,13 +1,9 @@
-'use client';
-
 import { useState, useRef, useEffect } from 'react';
 import { VertexAILiveService } from './services/VertexAILiveService';
 import { AudioVisualizer } from './components/AudioVisualizer';
 
 // Get or create persistent user ID for context persistence
 function getUserId(): string {
-  if (typeof window === 'undefined') return 'anonymous';
-
   let userId = localStorage.getItem('vaakya_user_id');
   if (!userId) {
     // Generate unique ID: timestamp + random string
@@ -20,7 +16,7 @@ function getUserId(): string {
   return userId;
 }
 
-export default function Home() {
+export default function App() {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [sessionStatus, setSessionStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
   const [selectedLanguage, setSelectedLanguage] = useState('auto');

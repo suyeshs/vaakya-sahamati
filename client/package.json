@@ -1,34 +1,25 @@
 {
-  "name": "client-react",
+  "name": "vaakya-client",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "description": "Vaakya Voice AI Client - Powered by Vertex AI Live",
   "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "dependencies": {
-    "@ricky0123/vad": "^0.2.4",
-    "@xstate/react": "^6.0.0",
-    "next": "^15.3.5",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "xstate": "^5.20.1"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/node": "^24.9.1",
     "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
-    "eslint": "^9.38.0",
-    "eslint-config-next": "^15.3.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^5.4.11"
   }
 }

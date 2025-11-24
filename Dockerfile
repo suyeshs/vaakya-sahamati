@@ -1,4 +1,4 @@
-# Stage 1: Build Next.js client with Bun
+# Stage 1: Build Vite client with Bun
 FROM oven/bun:1.1.38-alpine AS client-builder
 
 WORKDIR /client
@@ -12,7 +12,7 @@ RUN bun install
 # Copy client source
 COPY client .
 
-# Build Next.js app for static export using Bun
+# Build Vite app for production using Bun
 RUN bun run build
 
 # Stage 2: Bun backend with built client
@@ -31,8 +31,8 @@ RUN bun install --production
 COPY src ./src
 COPY server.js healthcheck.js ./
 
-# Copy built Next.js client from stage 1
-COPY --from=client-builder /client/out ./public
+# Copy built Vite client from stage 1
+COPY --from=client-builder /client/dist ./public
 
 # Expose port
 EXPOSE 8080
