@@ -5,7 +5,7 @@
  */
 
 const { GoogleAuth } = require('google-auth-library');
-const WebSocket = require('ws');
+// Using Bun's native WebSocket (globally available)
 const { logger } = require('../utils/logger');
 const SharedFunctionSchema = require('./SharedFunctionSchema');
 const config = require('../config');
@@ -134,18 +134,21 @@ class VertexAILiveService {
       // Get access token for WebSocket auth
       const accessToken = await this.getAccessToken();
 
-      // Create WebSocket connection with auth token in URL
-      // Note: ws library doesn't reliably send Authorization headers, so we use query param
-      const baseWsUrl = this.getWebSocketUrl();
-      const wsUrl = `${baseWsUrl}?access_token=${accessToken}`;
+      // Create WebSocket connection with Authorization header
+      // Bun's native WebSocket properly supports headers
+      const wsUrl = this.getWebSocketUrl();
 
       logger.info('[VertexAILive] Connecting to Vertex AI WebSocket', {
         sessionId,
-        url: baseWsUrl, // Don't log the token
+        url: wsUrl,
         hasToken: !!accessToken
       });
 
-      const ws = new WebSocket(wsUrl);
+      const ws = new WebSocket(wsUrl, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
 
       // Load previous conversation history if userId provided
       let previousContext = '';
