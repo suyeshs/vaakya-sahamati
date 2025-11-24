@@ -32,10 +32,33 @@ class VertexAILiveService {
     if (this.initialized) return;
 
     try {
+      logger.info('[VertexAILive] Initializing authentication...', {
+        projectId: this.projectId,
+        location: this.location,
+        model: this.model
+      });
+
       // Initialize Google Auth for access tokens
       this.auth = new GoogleAuth({
         scopes: ['https://www.googleapis.com/auth/cloud-platform']
       });
+
+      // Test authentication early
+      try {
+        const testClient = await this.auth.getClient();
+        const testToken = await testClient.getAccessToken();
+        logger.info('[VertexAILive] ✅ Authentication successful', {
+          hasToken: !!testToken?.token,
+          tokenPrefix: testToken?.token?.substring(0, 10) + '...'
+        });
+      } catch (authError) {
+        logger.error('[VertexAILive] ❌ Authentication test failed:', {
+          error: authError.message,
+          code: authError.code,
+          details: authError.details
+        });
+        throw new Error(`Authentication failed: ${authError.message}`);
+      }
 
       logger.info('[VertexAILive] Initialized', {
         projectId: this.projectId,
@@ -47,7 +70,10 @@ class VertexAILiveService {
 
       this.initialized = true;
     } catch (error) {
-      logger.error('[VertexAILive] Initialization failed:', error);
+      logger.error('[VertexAILive] Initialization failed:', {
+        error: error.message,
+        stack: error.stack
+      });
       throw error;
     }
   }
@@ -56,9 +82,28 @@ class VertexAILiveService {
    * Get access token for WebSocket authentication
    */
   async getAccessToken() {
-    const client = await this.auth.getClient();
-    const accessToken = await client.getAccessToken();
-    return accessToken.token;
+    try {
+      logger.info('[VertexAILive] Getting access token...');
+      const client = await this.auth.getClient();
+      const accessToken = await client.getAccessToken();
+
+      if (!accessToken || !accessToken.token) {
+        throw new Error('Access token is empty or null');
+      }
+
+      logger.info('[VertexAILive] ✅ Access token obtained', {
+        tokenLength: accessToken.token.length,
+        tokenPrefix: accessToken.token.substring(0, 15) + '...'
+      });
+
+      return accessToken.token;
+    } catch (error) {
+      logger.error('[VertexAILive] ❌ Failed to get access token:', {
+        error: error.message,
+        code: error.code
+      });
+      throw error;
+    }
   }
 
   /**
@@ -80,11 +125,23 @@ class VertexAILiveService {
     try {
       const { language = 'en', systemInstruction, userId } = config;
 
+      logger.info('[VertexAILive] Creating session', {
+        sessionId,
+        language,
+        userId: userId || 'anonymous'
+      });
+
       // Get access token for WebSocket auth
       const accessToken = await this.getAccessToken();
 
       // Create WebSocket connection
       const wsUrl = this.getWebSocketUrl();
+      logger.info('[VertexAILive] Connecting to Vertex AI WebSocket', {
+        sessionId,
+        url: wsUrl,
+        hasToken: !!accessToken
+      });
+
       const ws = new WebSocket(wsUrl, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -197,22 +254,32 @@ class VertexAILiveService {
       // Wait for connection to open
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
-          reject(new Error('WebSocket connection timeout'));
+          logger.error('[VertexAILive] ❌ WebSocket connection timeout after 10s', {
+            sessionId,
+            wsUrl
+          });
+          reject(new Error('WebSocket connection timeout after 10 seconds'));
         }, 10000);
 
         ws.once('open', () => {
           clearTimeout(timeout);
-          logger.info('[VertexAILive] WebSocket connected', { sessionId });
+          logger.info('[VertexAILive] ✅ WebSocket connected successfully', { sessionId });
           resolve();
         });
 
         ws.once('error', (error) => {
           clearTimeout(timeout);
+          logger.error('[VertexAILive] ❌ WebSocket connection error', {
+            sessionId,
+            error: error.message,
+            code: error.code
+          });
           reject(error);
         });
       });
 
       // Send setup message
+      logger.info('[VertexAILive] Sending setup message to Vertex AI...', { sessionId });
       await this.sendSetup(session);
 
       // Wait for setup to complete
@@ -220,16 +287,22 @@ class VertexAILiveService {
         session.setupResolve = resolve;
 
         const setupTimeout = setTimeout(() => {
+          logger.error('[VertexAILive] ❌ Setup timeout after 15s - Vertex AI did not respond', {
+            sessionId,
+            model: this.model,
+            location: this.location
+          });
           reject(new Error('Setup timeout - Vertex AI did not respond with setupComplete'));
         }, 15000);  // 15 second timeout
 
         session.setupResolve = () => {
           clearTimeout(setupTimeout);
+          logger.info('[VertexAILive] ✅ Setup complete received from Vertex AI', { sessionId });
           resolve();
         };
       });
 
-      logger.info('[VertexAILive] Session fully ready', { sessionId });
+      logger.info('[VertexAILive] ✅ Session fully ready', { sessionId });
 
       // Prime the AI with language context immediately after setup
       await this.primeLanguageContext(session);
@@ -239,7 +312,27 @@ class VertexAILiveService {
 
       return session;
     } catch (error) {
-      logger.error('[VertexAILive] Session creation failed:', error);
+      logger.error('[VertexAILive] ❌ Session creation failed:', {
+        sessionId,
+        error: error.message,
+        stack: error.stack,
+        code: error.code,
+        projectId: this.projectId,
+        location: this.location,
+        model: this.model
+      });
+      // Clean up failed session
+      if (this.activeSessions.has(sessionId)) {
+        const session = this.activeSessions.get(sessionId);
+        if (session.ws) {
+          try {
+            session.ws.close();
+          } catch (e) {
+            logger.warn('[VertexAILive] Error closing WebSocket during cleanup', { e: e.message });
+          }
+        }
+        this.activeSessions.delete(sessionId);
+      }
       throw error;
     }
   }
